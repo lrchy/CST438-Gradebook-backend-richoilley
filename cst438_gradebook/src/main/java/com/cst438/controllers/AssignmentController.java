@@ -50,5 +50,68 @@ public class AssignmentController {
 		return result;
 	}
 	
-	// TODO create CRUD methods for Assignment
+	//create assignment (POST requests)
+	@PostMapping("/assignment")
+	public Assignment createAssignment(@RequestBody AssignmentDTO assignmentDTO) {
+		//first convert the AssignmentDTO to Assignment entity
+		Assignment assignment = new Assignment();
+		assignment.setName(assignmentDTO.assignmentName());
+		assignment.setDueDate(java.sql.Date.valueOf(assignmentDTO.dueDate()));
+		
+		//now we find the course associated with this assignment and we set it
+		Course course = courseRepository.findById(assignmentDTO.courseId()).orElse(null);
+		if (course == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found, try another one");
+		}
+		assignment.setCourse(course);
+		
+		//save and return the created assignment
+		return assignmentRepository.save(assignment);
+	}
+	
+	//Retrieve a single assignment (GET)
+	@GetMapping("/assignment/{id}")
+	public Assignment getAssignmentById(@PathVariable int id) {
+		Assignment assignment = assignmentRepository.findById(id).orElse(null);
+        if (assignment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment ID not found");
+        }
+
+        return assignment;
+    }
+	
+	//Update (PUT)
+	@PutMapping("/assignment/{id}")
+	public Assignment updateAssignment(@PathVariable int id, @RequestBody AssignmentDTO assignmentDTO) {
+		//check if assignment exists
+		Assignment assignment = assignmentRepository.findById(id).orElse(null);
+        if (assignment == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found");
+        }
+
+        assignment.setName(assignmentDTO.assignmentName());
+        assignment.setDueDate(java.sql.Date.valueOf(assignmentDTO.dueDate()));
+        
+        Course course = courseRepository.findById(assignmentDTO.courseId()).orElse(null);
+        if (course == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Course not found, try another one");
+        }
+        assignment.setCourse(course);
+
+        return assignmentRepository.save(assignment);
+    }
+	
+	//Delete (DELETE)
+	@DeleteMapping("/assignment/{id}")
+	public void deleteAssignment(@PathVariable int id) {
+		//check if assignment exists or return an error message
+		 Assignment assignment = assignmentRepository.findById(id).orElse(null);
+	        if (assignment == null) {
+	            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Assignment not found");
+	        }
+
+	        assignmentRepository.delete(assignment);
+	    }
+	
+	//TODO get assignment grades method
 }

@@ -8,7 +8,16 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 @Entity
+//this is to ensure that no infinite loop of enrollment is created during postman requests
+//happened in "put" and "delete" requests when asking for "/assignment/{id}
+@JsonIdentityInfo(
+		  generator = ObjectIdGenerators.PropertyGenerator.class, 
+		  property = "id")
+//
 public class Course {
 	
 	@Id
@@ -17,6 +26,7 @@ public class Course {
 	private String instructor;
 	private int year;
 	private String semester;
+	
 	
 	@OneToMany(mappedBy="course")
 	@OrderBy("studentName ASC")
