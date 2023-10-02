@@ -18,6 +18,7 @@ public class Course {
 	private int year;
 	private String semester;
 	
+	
 	@OneToMany(mappedBy="course")
 	@OrderBy("studentName ASC")
 	List<Enrollment> enrollments = new ArrayList<>();

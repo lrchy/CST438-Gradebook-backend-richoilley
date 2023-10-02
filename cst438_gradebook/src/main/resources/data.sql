@@ -11,7 +11,8 @@ INSERT INTO course (year, semester, course_id, title, instructor)  VALUES
 
 insert into assignment (id, due_date, name, course_id) values 
 (1, '2021-09-01', 'db design', 31045),
-(2, '2021-09-02', 'requirements', 31045)
+(2, '2021-09-02', 'requirements', 31045),
+(3, '2023-09-03', 'New Assignment', 31045)
 ;
 
 insert into enrollment (id, student_email, student_name, course_id)  values
@@ -29,3 +30,4 @@ insert into assignment_grade (score, assignment_id, enrollment_id) values
 (94, 2, 2), 
 (95, 2, 3)
 ;
+

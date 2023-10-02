@@ -16,6 +16,7 @@ public class Assignment {
 	
 	@Id
 	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	
 	private int id;
 	
 	@ManyToOne
