@@ -17,6 +17,9 @@ import com.cst438.domain.EnrollmentDTO;
 import com.cst438.domain.EnrollmentRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
 @Service
 @ConditionalOnProperty(prefix = "registration", name = "service", havingValue = "mq")
 public class RegistrationServiceMQ implements RegistrationService {
@@ -36,6 +39,11 @@ public class RegistrationServiceMQ implements RegistrationService {
 
 
 	Queue registrationQueue = new Queue("registration-queue", true);
+    @Bean
+    Queue createQueue() {
+        return new Queue("gradebook-queue");
+    }
+    
 
 	/*
 	 * Receive message for student added to course
@@ -46,7 +54,18 @@ public class RegistrationServiceMQ implements RegistrationService {
 		
 		System.out.println("Gradebook has received: "+message);
 
-		//TODO  deserialize message to EnrollmentDTO and update database
+		//eserialize message to EnrollmentDTO
+		EnrollmentDTO enrollmentDTO = fromJsonString(message, EnrollmentDTO.class);
+		
+		//update database
+		Course course = courseRepository.findById(enrollmentDTO.courseId()).orElse(null);
+		if(course!=null) {
+			Enrollment enrollment = new Enrollment();
+			enrollment.setCourse(course);
+			enrollment.setStudentEmail(enrollmentDTO.studentEmail());
+			enrollment.setStudentName(enrollmentDTO.studentName());
+			enrollmentRepository.save(enrollment);
+		}
 	}
 
 	/*
@@ -57,7 +76,11 @@ public class RegistrationServiceMQ implements RegistrationService {
 		 
 		System.out.println("Start sendFinalGrades "+course_id);
 
-		//TODO convert grades to JSON string and send to registration service
+		//convert grades to JSON string
+		String gradesJson = asJsonString(grades);
+		
+		//send to registration service
+		rabbitTemplate.convertAndSend("registration-queue", gradesJson);
 		
 	}
 	

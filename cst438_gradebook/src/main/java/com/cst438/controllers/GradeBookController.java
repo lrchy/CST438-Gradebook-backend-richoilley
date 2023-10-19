@@ -95,6 +95,7 @@ public class GradeBookController {
 					count++;
 				}
 			}
+			
 			double average = (count > 0) ? average = total/count : 0; 
 			FinalGradeDTO dto = new FinalGradeDTO(e.getStudentEmail(), e.getStudentName(), letterGrade(average), course_id);
 			grades.add(dto);
