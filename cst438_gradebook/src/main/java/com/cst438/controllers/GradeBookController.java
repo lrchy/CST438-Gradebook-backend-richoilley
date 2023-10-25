@@ -2,6 +2,7 @@ package com.cst438.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,8 @@ import com.cst438.domain.Enrollment;
 import com.cst438.domain.GradeDTO;
 import com.cst438.domain.FinalGradeDTO;
 import com.cst438.services.RegistrationService;
+import com.cst438.domain.User;
+import com.cst438.domain.UserRepository;
 
 @RestController
 @CrossOrigin 
@@ -42,15 +45,19 @@ public class GradeBookController {
 	@Autowired
 	RegistrationService registrationService;
 	
+	@Autowired
+	UserRepository userRepository;
 	/*
 	 * get current grades of students for an assignment
 	 * if student does not have a grade, create an blank grade
 	 * id - assignment id
 	 */
 	@GetMapping("/gradebook/{id}")
-	public GradeDTO[] getGradebook(@PathVariable("id") Integer assignmentId  ) {
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
-		Assignment assignment = checkAssignment(assignmentId, email);
+	public GradeDTO[] getGradebook(Principal principal, @PathVariable("id") Integer assignmentId  ) {
+		
+		String userName = principal.getName();		
+		User currentUser = userRepository.findByAlias(userName);  // user name (should be instructor's email) 
+		Assignment assignment = checkAssignment(assignmentId, currentUser.getEmail());
 		// get the enrollments for the course
 		// for each enrollment, get the current grade for assignment, 
 		// if the student does not have a current grade, create an empty grade
@@ -75,12 +82,14 @@ public class GradeBookController {
 	 */
 	@PostMapping("/course/{course_id}/finalgrades")
 	@Transactional
-	public void calcFinalGrades(@PathVariable int course_id) {
+	public void calcFinalGrades(Principal principal, @PathVariable int course_id) {
 		System.out.println("Gradebook - calcFinalGrades for course " + course_id);
 		// check that this request is from the course instructor 
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
+		String userName = principal.getName();		
+		User currentUser = userRepository.findByAlias(userName);  // user name (should be instructor's email) 
+		
 		Course c = courseRepository.findById(course_id).orElse(null);
-		if (!c.getInstructor().equals(email)) {
+		if (!c.getInstructor().equals(currentUser.getEmail())) {
 			throw new ResponseStatusException( HttpStatus.UNAUTHORIZED, "Not Authorized. " );
 		}
 		// for each student in the course, calculate average of all assignment grades
@@ -109,9 +118,10 @@ public class GradeBookController {
 	 */
 	@PutMapping("/gradebook/{id}")
 	@Transactional
-	public void updateGradebook (@RequestBody GradeDTO[] grades, @PathVariable("id") Integer assignmentId ) {
-		String email = "dwisneski@csumb.edu";  // user name (should be instructor's email) 
-		checkAssignment(assignmentId, email);  // check that user name matches instructor email of the course.
+	public void updateGradebook (Principal principal, @RequestBody GradeDTO[] grades, @PathVariable("id") Integer assignmentId ) {
+		String userName = principal.getName();		
+		User currentUser = userRepository.findByAlias(userName);  // user name (should be instructor's email) 
+		checkAssignment(assignmentId, currentUser.getEmail());  // check that user name matches instructor email of the course.
 		// for each grade, update the assignment grade in database 		
 		for (GradeDTO g : grades) {
 			System.out.printf("%s\n", g.toString());
